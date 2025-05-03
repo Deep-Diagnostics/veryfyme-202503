@@ -106,6 +106,38 @@ class PermissionResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Tables\Actions\Action::make('duplicate')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('purple')  // Changed from 'success' to 'purple'
+                    ->requiresConfirmation()
+                    ->modalHeading('Duplicate Permission')
+                    ->modalDescription('Create a new permission based on this one.')
+                    ->form([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255)
+                            ->default(fn ($record) => "Copy of {$record->name}"),
+                        Forms\Components\TextInput::make('slug')
+                            ->required()
+                            ->maxLength(255)
+                            ->default(fn ($record) => "{$record->slug}_copy"),
+                        Forms\Components\Textarea::make('description')
+                            ->maxLength(1000)
+                            ->default(fn ($record) => $record->description),
+                    ])
+                    ->action(function (array $data, $record) {
+                        Permission::create([
+                            'name' => $data['name'],
+                            'slug' => $data['slug'],
+                            'description' => $data['description'],
+                        ]);
+                        
+                        Filament\Notifications\Notification::make()
+                            ->title('Permission duplicated successfully')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn ($record) => auth()->user()->hasPermission('permissions.create')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

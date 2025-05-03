@@ -26,8 +26,8 @@ class DashboardPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->id('dashboard')
-            ->path('dashboard')
+            ->id('administrator')
+            ->path('administrator')
             ->login()
             ->colors([
                 'primary' => Color::Amber,
@@ -56,7 +56,7 @@ class DashboardPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
                 // Add our custom permission middleware to check for dashboard access
-                CheckPermission::class . ':panel_access.dashboard', // Fixed syntax here - changed dot to colon
+                CheckPermission::class . ':panel_access.administrator', // Fixed syntax here - changed dot to colon
             ])
             ->plugins([
                 FilamentDeveloperLoginsPlugin::make()
