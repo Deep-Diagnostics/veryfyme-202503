@@ -44,7 +44,7 @@ class RolesAndPermissionsSeeder extends Seeder
             ['name' => 'Delete permissions', 'slug' => 'permissions.delete', 'description' => 'Can delete permissions'],
             
             // Dashboard access permission
-            ['name' => 'Access Dashboard', 'slug' => 'panel_access:dashboard', 'description' => 'Can access the admin dashboard'],
+            ['name' => 'Access Dashboard', 'slug' => 'panel_access.dashboard', 'description' => 'Can access the admin dashboard'],
         ];
         
         foreach ($permissions as $permission) {

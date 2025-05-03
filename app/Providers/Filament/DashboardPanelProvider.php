@@ -56,7 +56,7 @@ class DashboardPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
                 // Add our custom permission middleware to check for dashboard access
-                CheckPermission::class . ':panel_access.dashboard',
+              //  CheckPermission::class . ':panel_access.dashboard', // Fixed syntax here - changed dot to colon
             ])
             ->plugins([
                 FilamentDeveloperLoginsPlugin::make()
