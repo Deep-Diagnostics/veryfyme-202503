@@ -84,6 +84,7 @@ class PermissionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->paginated([ 25, 50, 100, 250, 'all'])
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
@@ -143,7 +144,123 @@ class PermissionResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('assignToRoles')
+                        ->label('Add to Role(s)')
+                        ->icon('heroicon-o-user-group')
+                        ->color('success')
+                        ->form([
+                            Forms\Components\Select::make('roleIds')
+                                ->label('Select Roles')
+                                ->multiple()
+                                ->options(function () {
+                                    $roleModel = app(config('permission.models.role', \App\Models\Role::class));
+                                    return $roleModel::pluck('name', 'id')->toArray();
+                                })
+                                ->preload()
+                                ->searchable()
+                                ->required()
+                                ->helperText('Selected permissions will be assigned to these roles'),
+                        ])
+                        ->action(function ($records, array $data) {
+                            $roleIds = $data['roleIds']; // Changed from 'roles' to 'roleIds'
+                            $permissionIds = $records->pluck('id')->toArray();
+                            $rolesCount = count($roleIds);
+                            $permissionsCount = count($permissionIds);
+                            
+                            // Get the Role model class
+                            $roleModel = app(config('permission.models.role', \App\Models\Role::class));
+                            
+                            // Find the selected roles
+                            $roles = $roleModel::whereIn('id', $roleIds)->get();
+                            
+                            // Attach permissions to each role
+                            foreach ($roles as $role) {
+                                $role->permissions()->syncWithoutDetaching($permissionIds);
+                            }
+                            
+                            Notification::make()
+                                ->title($permissionsCount . ' permissions assigned to ' . $rolesCount . ' role(s)')
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion()
+                        ->requiresConfirmation()
+                        ->modalHeading('Add Permissions to Role(s)')
+                        ->modalDescription('The selected permissions will be added to the chosen role(s).')
+                        ->modalSubmitActionLabel('Add Permissions')
+                        ->visible(fn () => auth()->user()->hasPermission('roles.edit')),
                 ]),
+            ])
+            ->headerActions([
+              //  Tables\Actions\CreateAction::make(),
+                Tables\Actions\Action::make('generateCrud')
+                    ->label('Generate CRUD Permissions')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\TextInput::make('resource')
+                            ->label('Resource Name')
+                            ->placeholder('e.g. users, posts, events')
+                            ->required()
+                            ->helperText('Enter the resource name in plural form (e.g. users, posts)'),
+                    ])
+                    ->action(function (array $data) {
+                        $resource = strtolower(trim($data['resource']));
+                        // Remove trailing 's' if present to get singular form for description
+                        $singularResource = rtrim($resource, 's');
+                        
+                        $permissions = [
+                            [
+                                'name' => ucfirst($resource) . ' List',
+                                'slug' => $resource . '.list',
+                                'description' => 'Ability to view list of ' . $resource,
+                            ],
+                            [
+                                'name' => ucfirst($resource) . ' View',
+                                'slug' => $resource . '.view',
+                                'description' => 'Ability to view ' . $singularResource . ' details',
+                            ],
+                            [
+                                'name' => ucfirst($resource) . ' Create',
+                                'slug' => $resource . '.create',
+                                'description' => 'Ability to create new ' . $singularResource,
+                            ],
+                            [
+                                'name' => ucfirst($resource) . ' Edit',
+                                'slug' => $resource . '.edit',
+                                'description' => 'Ability to edit ' . $singularResource,
+                            ],
+                            [
+                                'name' => ucfirst($resource) . ' Delete',
+                                'slug' => $resource . '.delete',
+                                'description' => 'Ability to delete ' . $singularResource,
+                            ],
+                        ];
+                        
+                        $created = 0;
+                        $skipped = 0;
+                        
+                        foreach ($permissions as $permission) {
+                            // Check if permission already exists
+                            if (!Permission::where('slug', $permission['slug'])->exists()) {
+                                Permission::create($permission);
+                                $created++;
+                            } else {
+                                $skipped++;
+                            }
+                        }
+                        
+                        Notification::make()
+                            ->title($created . ' permissions created successfully')
+                            ->body($skipped > 0 ? $skipped . ' permissions were skipped (already exist)' : '')
+                            ->success()
+                            ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Generate CRUD Permissions')
+                    ->modalDescription('This will create standard list, view, create, edit, and delete permissions for the specified resource.')
+                    ->modalSubmitActionLabel('Generate Permissions')
+                    ->visible(fn () => auth()->user()->hasPermission('permissions.create')),
             ]);
     }
 
