@@ -194,7 +194,7 @@ class PermissionResource extends Resource
             ->headerActions([
               //  Tables\Actions\CreateAction::make(),
                 Tables\Actions\Action::make('generateCrud')
-                    ->label('Generate CRUD Permissions')
+                    ->label('Generate LVCED Permissions')
                     ->icon('heroicon-o-sparkles')
                     ->color('success')
                     ->form([
