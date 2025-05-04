@@ -6,6 +6,7 @@ use App\Filament\App\Resources\EventResource\Pages;
 use App\Filament\App\Resources\EventResource\RelationManagers;
 use App\Models\Event;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -96,12 +97,12 @@ class EventResource extends Resource
                     
                 Forms\Components\Section::make('Event Details')->columns(2)
                     ->schema([
-                        Forms\Components\TextInput::make('event_name')
+                        Forms\Components\TextInput::make('event_name')->columnSpanFull()
                             ->label('Event Name')
                             ->required()
                             ->maxLength(255)
                             ->placeholder('Enter event name')
-                            ->columnSpanFull()->live()
+                            ->columnSpanFull()->live(onBlur: true)
                             ->afterStateUpdated(fn ($state, callable $set) => $set('online_link', Str::slug($state)))
                             ->afterStateHydrated(function ($state, callable $set) {
                                 $set('online_link', Str::slug($state));
@@ -109,40 +110,31 @@ class EventResource extends Resource
                             }),
 
                             
-                        Forms\Components\TextInput::make('online_link')
+                        Forms\Components\TextInput::make('online_link')->columnSpanFull()
                             ->label('Online Meeting Slug')
                             ->maxLength(45)
                             ->url()
-                            ->prefix('https://'.env('APP_URL').'/events/')
+                            ->prefix('https://'.env('APP_URL').'events/')
                             ->placeholder('Enter online meeting slug')
                             ->columnSpanFull()
                             ->helperText('Enter the online meeting slug')
                             ->afterStateUpdated(fn ($state, callable $set) => $set('online_link', Str::slug($state))),
                             
-                        DateTimePicker::make('event_start_dT')
+                            DatePicker::make('event_start_dT')
                             ->label('Start Date & Time')
                             ->required()
                             ->seconds(false)
                             ->timezone('Africa/Lagos')
-                            ->columnStart(1),
+                            ,
                             
-                        DateTimePicker::make('event_end_dT')
+                            DatePicker::make('event_end_dT')
                             ->label('End Date & Time')
                             ->seconds(false)
                             ->timezone('Africa/Lagos')
                             ->after('event_start_dT')
-                            ->columnStart(2),
-                            
-                        TextInput::make('cpd_points_earned')
-                            ->label('CPD Points')
-                            ->numeric()
-                            ->default(1)
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->step(0.1)
-                            ->columnStart(1),
-                            
-                        Select::make('event_type')
+                            ,
+
+                        Select::make('event_type')->columnSpanFull()
                             ->label('Event Type')
                             ->options([
                                 'workshop' => 'Workshop',
@@ -155,7 +147,7 @@ class EventResource extends Resource
                             ->searchable()
                             ->columnStart(2),
                             
-                        Select::make('event_privacy')
+                        Select::make('event_privacy')->columnSpanFull()
                             ->label('Privacy Setting')
                             ->options([
                                 'public' => 'Public',
@@ -166,9 +158,21 @@ class EventResource extends Resource
                             ->required()
                             ->helperText('Controls who can view and register for this event'),
                     ]),
-                    
+                Forms\Components\Section::make('CPD Points')
+                    ->schema([    
+                        TextInput::make('cpd_points_earned')
+                        ->label('CPD Points')
+                        ->numeric()
+                        ->default(1)
+                        ->minValue(0)
+                        ->maxValue(10000)
+                        ->step(0.1)
+                        ->columnStart(1),
+                    ]),
                 Forms\Components\Section::make('Content')
-                    ->schema([
+                    ->schema([ 
+                        
+                        
                         RichEditor::make('event_description')
                             ->label('Event Description')
                             ->fileAttachmentsDisk('public')
