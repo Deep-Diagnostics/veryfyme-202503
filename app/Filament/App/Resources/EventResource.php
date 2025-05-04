@@ -113,6 +113,8 @@ class EventResource extends Resource
                             ->label('Online Meeting Slug')
                             ->maxLength(45)
                             ->url()
+                            ->prefix('https://'.env('APP_URL').'/events/')
+                            ->placeholder('Enter online meeting slug')
                             ->columnSpanFull()
                             ->helperText('Enter the online meeting slug')
                             ->afterStateUpdated(fn ($state, callable $set) => $set('online_link', Str::slug($state))),

@@ -64,6 +64,7 @@ class AppPanelProvider extends PanelProvider
                 FilamentDeveloperLoginsPlugin::make()
                     ->enabled()
                     ->users([
+                        'Super Admin' => 'super-admin@example.com',
                         'Admin' => 'admin@example.com',
                         'User' => 'user@example.com',
                     ])

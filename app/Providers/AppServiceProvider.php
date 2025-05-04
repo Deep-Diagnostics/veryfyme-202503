@@ -23,13 +23,17 @@ class AppServiceProvider extends ServiceProvider
         PanelSwitch::configureUsing(function (PanelSwitch $panelSwitch) {
             $panelSwitch->slideOver();
             $panelSwitch->modalWidth('sm');
-            $panelSwitch->iconSize(16);
+            $panelSwitch->iconSize(20);
             $panelSwitch->icons([
                 'administrator' => 'eos-admin',
                 'app' => 'carbon-app',
             ], $asImage = false);
-            $panelSwitch
-            ->canSwitchPanels(fn (): bool => auth()->user()?->can('switch_panels'));
+            $panelSwitch->canSwitchPanels(fn (): bool => auth()->user()->hasPermission('panels.switch'));
+            $panelSwitch->visible(fn (): bool => auth()->user()->hasPermission('panels.switch'));
+            $panelSwitch->labels([
+                'administrator' => 'Administrator',
+                'app' => 'Application',
+            ]);
 
         });
 

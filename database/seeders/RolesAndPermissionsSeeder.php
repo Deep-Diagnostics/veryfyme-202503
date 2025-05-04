@@ -45,6 +45,9 @@ class RolesAndPermissionsSeeder extends Seeder
             
             // Dashboard access permission
             ['name' => 'Access Dashboard', 'slug' => 'panel_access.dashboard', 'description' => 'Can access the admin dashboard'],
+            
+            // Panel switch permission
+            ['name' => 'Switch Panels', 'slug' => 'panels.switch', 'description' => 'Can switch between admin and application panels'],
         ];
         
         foreach ($permissions as $permission) {
